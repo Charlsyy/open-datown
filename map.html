@@ -1,108 +1,266 @@
 <!DOCTYPE html>
 <html>
 <head>
-	
-	<title>open da<b>town</b></title>
-	<meta charset="utf-8" />
-	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<link rel="shortcut icon" type="image/x-icon" href="docs/images/favicon.ico" />
+        
+        <title>open daTown</title>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="shortcut icon" type="image/x-icon" href="docs/images/favicon.ico" />
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.3.4/dist/leaflet.css" integrity="sha512-puBpdR0798OZvTTbP4A8Ix/l+A4dHDD0DGqYW6RQ+9jxkRFclaxxQb/SJAWZfWAkuyeQUytO7+7N4QKrDh+drA==" crossorigin=""/>
     <script src="https://unpkg.com/leaflet@1.3.4/dist/leaflet.js" integrity="sha512-nMMmRyTVoLYqjP9hrbed9S+FzjZHW5gY1TWCHA5ckwXZBadntCNs8kEqAWdrb9O7rxbCaA4lKTIWjDXZxflOcA==" crossorigin=""></script>
-	<link rel="stylesheet" type="text/css" href="map.css"></link>
+        <link rel="stylesheet" type="text/css" href="map.css"></link>
 </head>
+
+<img src="LOGO.png" alt="LOGO" <div id="LOGO">
+
+<div id="sidebar" class="sidenav"> 
+        <p id="0"></p>
+        <p id="1"></p>
+        <p id="2"></p>
+        <p id="3"></p>
+        <p id="4"></p>
+        </div>        
 <body>
-	
-	<h1><u>Point Stuff Out Map</u></h1>
-	
-	<div id="wrapper">	
-	<div id="mapid">
+        
+        <div id="wrapper">
+        <div id="mapid">
 <script>
+        function request(method, url, data) {
+                headers = new Headers();
+                headers.append("Content-Type", "application/json")
+                if(method == "HEAD" || method == "GET") {
+                        return fetch(url, {
+                                method,
+                                headers: {
+                                "Content-Type": "application/json"
+                                    },
+                                    mode: "cors",
+                        })
+            } 
+                else {
+                        return fetch(url, {
+                                    method,
+                                    headers: {
+                                "Content-Type": "application/json"
+                                },
+                            mode: "cors",
+                            body: JSON.stringify(data)
+                })
+            }
+        }
+        function insert(lng, lat,description, category) {
+            request("POST", "http://100.100.203.32:3000/points", {
+                    "long": lng,
+                    "lat": lat,
+                    "description": description,
+                    "category": category
+            })
+        }
+        function fetch_all(cb) {
+            request("GET", "http://100.100.203.32:3000/points", {})
+              .then((r)=>{
+                  r.json().then(function(r) {
+                    cb(r)
+                  })
+              })
+        }
+        
+        function fetch_single(id, cb) {
+            request("GET", "http://100.100.203.32:3000/points/"+String(id), {})
+              .then((r)=>{
+                  r.json().then(function(r) {
+                    cb(r)
+                  })
+              })
+        }
+	function displayMarkers(item) {
+		if(item!=undefined) {
+			setMarkerManuel(item.description, item.latitude, item.longitude, item.category);
+		}
+	}
+	
+	fetch_all(function(r) {
+		console.log(r);
+		for(var i=0; i <= r.length; i++) {
+			if(i!=undefined) {
+				displayMarkers(r[i]);
+			}
+		}
+	});
+	
+
 	var markerdescription;
+	var markers = {};
+	var catNumber;
+	var mapPinID;
+	catNumber = 1;
 	function getcoords() {
 		var latitude = window.ltlg.lat;
 		var longitude = window.ltlg.long;
 		console.log(latitude);
 	}
 
-	function getTag() {
-		var input = document.getElementById("usertag");	
-		var value = input.value
-		console.log(value)
-		markerdescription = value;
-		return value
-	}
-		var mymap = L.map('mapid').setView([51.505, -0.09], 13);
-	if (navigator.geolocation) {
-		navigator.geolocation.getCurrentPosition(setPosition);
+        function getTag() {
+                var input = document.getElementById("usertag");        
+                var value = input.value;
+//                console.log(value)
+                markerdescription = value;
+                return value;
+        }
+
+        var mymap = L.map('mapid').setView([51.505, -0.09], 13);
+        if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(setPosition);
     } else { 
-		mymap = L.map('mapid').setView([51.505, -0.09], 13);
+                mymap = L.map('mapid').setView([51.505, -0.09], 13);
     }
-	
-	function setPosition(position){
-		mymap.setView([position.coords.latitude, position.coords.longitude], 13);
-	var circle = L.circle([position.coords.latitude, position.coords.longitude], {
-    color: 'red',
-    fillColor: '#f03',
-    fillOpacity: 0.5,
-    radius: 100
-	}).addTo(mymap);
-	circle.bindPopup("current location");
-	}
+        
+        function setPosition(position){
+                mymap.setView([position.coords.latitude, position.coords.longitude], 13);
+        var circle = L.circle([position.coords.latitude, position.coords.longitude], {
+			color: 'red',
+			fillColor: '#f03',
+			fillOpacity: 0.5,
+			radius: 100
+        }).addTo(mymap);
+        }
 
-	L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token=pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpejY4NXVycTA2emYycXBndHRqcmZ3N3gifQ.rJcFIG214AriISLbB6B5aw', {
-		maxZoom: 18,
-		attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors, ' +
-			'<a href="https://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, ' +
-			'Imagery © <a href="https://www.mapbox.com/">Mapbox</a>',
-		id: 'mapbox.streets'
-	}).addTo(mymap);
+        L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token=pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpejY4NXVycTA2emYycXBndHRqcmZ3N3gifQ.rJcFIG214AriISLbB6B5aw', {
+                maxZoom: 18,
+                attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors, ' +
+                        '<a href="https://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, ' +
+                        'Imagery © <a href="https://www.mapbox.com/">Mapbox</a>',
+                id: 'mapbox.streets'
+        }).addTo(mymap);
 
-	var popup = L.popup();
-	var latlng;
-	var markerGroup = L.layerGroup().addTo(mymap);
+        var popup = L.popup();
+        var latlng;
+        var markerGroup = L.layerGroup().addTo(mymap);
 
         function onMapClick(e) {
+		if (mapPinID) {
+			removeMarker();
+		}
+		catNumber = 1;
 	        latlng = e.latlng;
 		window.ltlg = e.latlng;
-	        popup
+		mapPinID = setMarkerManuel("",e.latlng.lat,e.latlng.lng,TypEnum.MAPPIN, true);
+		insertToSidebar("<input type='text' id='usertag'/>","<button type='submit' onclick='getcoords();getTag();mymap.closePopup();setMarker();removeMarker();emptySidebar()'> Hinzufügen </button>")
+/*	        popup
 				.setLatLng(e.latlng)
 				.setContent("<input type='text' id='usertag'/> <button type='submit' onclick='getcoords();getTag();mymap.closePopup();setMarker()'> Hinzufügen </button>")
-				.openOn(mymap);
+				.openOn(mymap); */
                                 
         }
 
         function setMarker(){
-            var marker = L.marker(latlng).addTo(mymap)
+		var Icon = L.icon({
+		iconUrl: TypEnum.properties[catNumber].icon,
+
+		iconSize:     [34, 85], // size of the icon
+		shadowSize:   [50, 64], // size of the shadow
+		iconAnchor:   [22, 94], // point of the icon which will 	correspond to marker's location
+	 	shadowAnchor: [4, 62],  // the same for the shadow
+		popupAnchor:  [-3, -76] // point from which the popup should 	open relative to the iconAnchor
+});
+
+        	var marker = L.marker([latlng.lat, latlng.lng],  {icon: Icon}).addTo(mymap)
                 .bindPopup(markerdescription);
-		marker.addTo(markerGroup)
-		marker.on('click', onClick_Marker);
-                        mymap.closePopup();
+                marker.addTo(markerGroup);
+                marker.on('click', onClick_Marker);
+                mymap.closePopup();
+                markers[marker._leaflet_id] = [ latlng.lat,
+                                                latlng.lng,
+                                                markerdescription,
+                                                1];
+				insert(latlng.lng, latlng.lat,markerdescription, TypEnum.properties[catNumber].value)
+                console.log(markers);
         }
-		
-	function setMarkerManuel(lat, lng, type){
-		var marker = L.marker([lat, lng]).addTo(mymap)
-                	.bindPopup(type);
+                
+        function setMarkerManuel(markerdescription,lati, longi, type, isMapMarker = false){
+                var Icon = L.icon({
+                iconUrl: TypEnum.properties[type].icon,
+
+                iconSize:     TypEnum.properties[type].iconSize, // size of the icon
+                shadowSize:   [50, 64], // size of the shadow
+                iconAnchor:   [22, 94], // point of the icon which will         correspond to marker's location
+                 shadowAnchor: [4, 62],  // the same for the shadow
+                popupAnchor:  [-3, -76] // point from which the popup should         open relative to the iconAnchor
+});
+                var marker = L.marker([lati, longi],  {icon: Icon}).addTo(mymap)
+                        .bindPopup(type);
+			if(!isMapMarker){
+				insert(longi, lati,markerdescription, TypEnum.properties[type].value)
+			}
             mymap.closePopup();
-		}	
-		
+		marker.addTo(markerGroup);
+		markers[marker._leaflet_id] = [ lati,
+                                                longi,
+                                                markerdescription,
+                                                type];
+		return marker._leaflet_id;
+		}		
 	mymap.on('click', onMapClick);
 	
 	function onClick_Marker(e) {
 		console.log(e);
 		lfid = e.target._leaflet_id;
+		displaySidebar(markers[lfid]);
 	}
 	
-	function removeMarker(leafletid) {
-		markerGroup.removeLayer(leafletid);
+	function removeMarker(leaf=mapPinID) {
+		markerGroup.removeLayer(leaf);
+		if(mapPinID) {
+			if(mapPinID == leaf) {
+				mapPinID = undefined;
+			}
+		}
 	}
+	function displaySidebar(markerdic) {
+		document.getElementById("0").innerHTML="<h2>Punkt</h2>";
+		document.getElementById("1").innerHTML="Beschreibung: " + markerdic[2].toString();
+		document.getElementById("2").innerHTML="Längengrad: " + markerdic[0].toFixed(2).toString();		
+		document.getElementById("3").innerHTML="Breitengrad: " + markerdic[1].toFixed(2).toString();
+		document.getElementById("4").innerHTML="Kategorie: " + markerdic[3].toString();
+	}
+	function insertToSidebar(content1,content2) {
+		document.getElementById("0").innerHTML="<h2>Neuen Punkt eintragen</h2>";
+		document.getElementById("1").innerHTML=content1;
+		document.getElementById("2").innerHTML='<select id="categoryForm" onchange="setCategoryNumber()"> <option value="1">Müll</option> <option value="2">Wahlplakat</option></select>';
+		document.getElementById("3").innerHTML=content2;
+		document.getElementById("4").innerHTML="";
+	}
+	function emptySidebar() {
+		document.getElementById("0").innerHTML="";
+		document.getElementById("1").innerHTML="";
+		document.getElementById("2").innerHTML="";
+		document.getElementById("3").innerHTML="";
+		document.getElementById("4").innerHTML="";
+	}
+	function setCategoryNumber() {
+		catNumber = document.getElementById("categoryForm").value;
+		console.log("yeah");
+}
 
 
+        var TypEnum = {
+                TRASH: 1,
+                POSTER: 2,
+				MAPPIN: 3,
+				CAMERA: 4,
+                properties: {
+                        1: {name: "trash", value: 1, code: "S", icon: "icon_trash.png", iconSize: [34, 75]},
+                        2: {name: "poster", value: 2, code: "P", icon: "icon_election_poster.png", iconSize: [34, 75]},
+						3: {name: "mappin", value: 3, code: "M", icon: "map-pin.png", iconSize: [50, 75]},
+						4: {name: "camera", value: 4, code: "c", icon: "icon_camera.png", iconSize: [50, 26]}
+                }
+        };
 </script>
-	</div>
-	<div id="textfenster">
-	<p> Hier könnte ihre Werbung stehen</p>
-	</div>
-	</div>	
+        </div>
+        <div id="textfenster">
+        <p> Hier könnte ihre Werbung stehen</p>
+        </div>
+
 
 </body>
 </html>
