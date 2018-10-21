@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>API test</title>
+</head>
+<body>
+    <button onclick="insert()">Insert test data</button>
+    <button onclick="fetch_all(alert)">Fetch all data</button>
+    <button onclick="fetch_single(1, console.log)">Fetch point with id 1</button>
+
+    <script>
+        function request(method, url, data) {
+            headers = new Headers();
+            headers.append("Content-Type", "application/json")
+            if(method == "HEAD" || method == "GET") {
+                return fetch(url, {
+                    method,
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    mode: "cors",
+                })
+            } else {
+                return fetch(url, {
+                    method,
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    mode: "cors",
+                    body: JSON.stringify(data)
+                })
+            }
+        }
+        function insert() {
+            request("POST", "http://100.100.255.174:3000/points", {
+                    "long": 52.123,
+                    "lat": 75.123,
+                    "description": "Dies ist ein Test-Punkt",
+                    "category": 1
+            })
+        }
+        function fetch_all(cb) {
+            request("GET", "http://100.100.255.174:3000/points", {})
+              .then((r)=>{
+                  r.json().then(function(r) {
+                    cb(r)
+                  })
+              })
+        }
+        function fetch_single(id, cb) {
+            request("GET", "http://100.100.255.174:3000/points/"+String(id), {})
+              .then((r)=>{
+                  r.json().then(function(r) {
+                    cb(r)
+                  })
+              })
+        }
+    </script>
+</body>
+</html>
